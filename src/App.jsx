@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Github, Linkedin, Mail, Sparkles } from "lucide-react";
 import ParticlePortrait from "./ParticlePortrait.jsx";
 
@@ -43,8 +43,62 @@ const skills = [
   { title: "Tools", items: "Git · GitHub · MySQL · SQLite · Socket.IO" }
 ];
 
+const capabilities = [
+  "Full-stack web development",
+  "Applied AI and machine learning",
+  "Natural language processing",
+  "Computer vision",
+  "REST APIs and backend systems",
+  "Responsive interface design"
+];
+
 function SectionLabel({ children }) {
   return <div className="section-label"><span className="label-dot" />{children}</div>;
+}
+
+const scrambleCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function IntroSequence({ onComplete }) {
+  const [scrambledName, setScrambledName] = useState("•••••• •••••");
+
+  useEffect(() => {
+    let frame = 0;
+    let interval;
+    const name = "HARSHIT JAIN";
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const reveal = () => {
+      const visible = Math.min(name.length, Math.floor(frame / 2));
+      setScrambledName(name.split("").map((character, index) => {
+        if (character === " ") return " ";
+        if (index < visible) return character;
+        return scrambleCharacters[Math.floor(Math.random() * scrambleCharacters.length)];
+      }).join(""));
+      frame += 1;
+      if (visible >= name.length) window.clearInterval(interval);
+    };
+
+    interval = window.setInterval(reveal, reducedMotion ? 1 : 75);
+    const timeout = window.setTimeout(onComplete, reducedMotion ? 80 : 3500);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
+  }, [onComplete]);
+
+  return (
+    <div className="intro-sequence" aria-label="Opening portfolio animation">
+      <div className="intro-symbol" aria-hidden="true">
+        <span className="intro-orbit" />
+        <span className="intro-stem" />
+        <span className="intro-dot" />
+      </div>
+      <p className="intro-sequence-name">{scrambledName}</p>
+      <p className="intro-sequence-role">AI & MACHINE LEARNING / DEVELOPER</p>
+      <p className="intro-sequence-title">PORTFOLIO</p>
+      <span className="intro-sequence-line" />
+    </div>
+  );
 }
 
 class ParticleErrorBoundary extends React.Component {
@@ -72,46 +126,82 @@ class ParticleErrorBoundary extends React.Component {
 }
 
 export default function App() {
+  const [introComplete, setIntroComplete] = useState(false);
+  const completeIntro = React.useCallback(() => setIntroComplete(true), []);
+
   return (
-    <main>
+    <main className={introComplete ? "intro-finished" : "intro-playing"}>
+      {!introComplete && <IntroSequence onComplete={completeIntro} />}
       <div className="ambient ambient-one" aria-hidden="true" />
       <div className="ambient ambient-two" aria-hidden="true" />
       <nav className="nav shell" aria-label="Main navigation">
-        <a className="brand" href="#top" aria-label="Harshit Jain home"><span>H</span><i>.</i></a>
+        <a className="brand" href="#top" aria-label="Harshit Jain home"><span className="brand-word">HARSHIT JAIN</span><span className="brand-mark">H</span><i>.</i></a>
         <div className="nav-links">
           <a href="#work">Work</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
         </div>
         <a className="nav-status" href="#contact"><span className="status-pulse" /> Open to opportunities</a>
+        <span className="menu-mark" aria-hidden="true"><i /><i /></span>
       </nav>
 
       <section className="hero shell" id="top">
         <div className="hero-copy">
-          <div className="eyebrow reveal reveal-one"><Sparkles size={14} strokeWidth={1.8} /> DEVELOPER PORTFOLIO <span className="eyebrow-year">2026 / 27</span></div>
-          <h1 className="portfolio-title reveal reveal-two">PORT<br /><span>FOLIO</span><b>.</b></h1>
+          <div className="eyebrow reveal reveal-one"><Sparkles size={14} strokeWidth={1.8} /> AI / ML · COMPUTER VISION · NLP <span className="eyebrow-year">2026 / 27</span></div>
+          <h1 className="portfolio-title reveal reveal-two">PORTFOLIO</h1>
           <div className="hero-rule reveal reveal-three"><span /></div>
           <div className="intro reveal reveal-four">
             <p className="intro-kicker">HEY, I'M</p>
             <h2>{NAME}</h2>
             <p className="role">{ROLE}</p>
-            <p className="hero-description">I build useful digital experiences across full-stack development, AI, and machine learning — from the first interface to the logic behind it.</p>
+            <p className="hero-description">I’m an AI & Machine Learning student building practical computer-vision, NLP, and full-stack experiences — from the first interface to the logic behind it.</p>
           </div>
           <div className="hero-actions reveal reveal-five">
+            <a className="reference-arrow" href="#work" aria-label="Explore my work"><ArrowDownRight size={17} /></a>
+            <a className="reference-contact" href="#contact">Contact</a>
             <a className="button button-primary" href="#contact">Let’s connect <ArrowUpRight size={16} /></a>
             <a className="text-link" href="#work">Explore my work <ArrowDownRight size={16} /></a>
           </div>
           <div className="hero-meta reveal reveal-five"><span>BASED IN INDIA</span><span className="meta-line" /><span>BUILDING · LEARNING · ITERATING</span></div>
         </div>
-        <div className="hero-visual" aria-label="Portrait particle animation">
-          <div className="visual-index"><span>01</span> / THE HUMAN BEHIND THE CODE</div>
-          <ParticleErrorBoundary>
-            <ParticlePortrait />
-          </ParticleErrorBoundary>
-          <div className="visual-caption"><span className="caption-line" /> Pixels into perspective.</div>
-          <div className="vertical-note">CREATIVE CODE / HUMAN-CENTRED BUILDING</div>
+        <div className="hero-visual-stage">
+          <div className="hero-visual" aria-label="Portrait particle animation">
+            <div className="visual-index"><span>01</span> / THE HUMAN BEHIND THE CODE</div>
+            <ParticleErrorBoundary>
+              <ParticlePortrait introComplete={introComplete} />
+            </ParticleErrorBoundary>
+            <div className="visual-caption"><span className="caption-line" /> Pixels into perspective.</div>
+            <div className="vertical-note">CREATIVE CODE / HUMAN-CENTRED BUILDING</div>
+          </div>
         </div>
         <a className="scroll-cue" href="#work"><span className="scroll-line" /> SCROLL TO EXPLORE</a>
+      </section>
+
+      <section className="resume-intro shell" id="resume">
+        <div className="resume-intro-heading">
+          <SectionLabel>PROFILE / 01</SectionLabel>
+          <h2>Build useful things.<br /><span>Keep learning.</span></h2>
+        </div>
+        <div className="resume-intro-card">
+          <p><strong>Hey, I’m Harshit.</strong> I’m a B.Tech AI & Machine Learning student who enjoys turning ideas into practical software. My work sits between thoughtful interfaces, dependable backend systems, and applied AI.</p>
+          <a className="text-link" href="#contact">Let’s work together <ArrowUpRight size={16} /></a>
+        </div>
+      </section>
+
+      <section className="capabilities-section shell" aria-labelledby="capabilities-title">
+        <div className="capabilities-heading">
+          <SectionLabel>WHAT I CAN DO</SectionLabel>
+          <h2 id="capabilities-title">Useful systems,<br /><span>carefully made.</span></h2>
+        </div>
+        <div className="capability-list">
+          {capabilities.map((capability, index) => (
+            <div className="capability-row" key={capability}>
+              <span>0{index + 1}</span>
+              <strong>{capability}</strong>
+              <ArrowUpRight size={15} />
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="work-section section shell" id="work">
@@ -169,7 +259,7 @@ export default function App() {
       </section>
 
       <footer className="footer shell">
-        <a className="brand footer-brand" href="#top"><span>H</span><i>.</i></a>
+        <a className="brand footer-brand" href="#top"><span className="brand-word">HARSHIT JAIN</span><span className="brand-mark">H</span><i>.</i></a>
         <p>DESIGNED & BUILT WITH CURIOSITY <span>© {new Date().getFullYear()}</span></p>
         <div className="social-links">
           <a href="https://github.com/Harshitjain-11" target="_blank" rel="noreferrer" aria-label="GitHub"><Github size={17} /></a>
