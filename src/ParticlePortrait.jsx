@@ -27,11 +27,16 @@ export default function ParticlePortrait({ introComplete = true }) {
     let geometry;
     let material;
     let glowMaterial;
+    let trailGeometry;
+    let trailMaterial;
+    let trailLines;
     let resizeObserver;
     let animationFrame = 0;
     let disposed = false;
     let currentProgress = 0;
     let targetProgress = introComplete ? 0 : 1;
+    const pointer = new THREE.Vector2(10, 10);
+    const pointerTarget = new THREE.Vector2(10, 10);
 
     const originalPositions = [];
     const scatteredPositions = [];
@@ -232,6 +237,29 @@ export default function ParticlePortrait({ introComplete = true }) {
         glowMesh.instanceColor = new THREE.InstancedBufferAttribute(glowColors, 3);
         glowMesh.instanceColor.needsUpdate = true;
         scene.add(glowMesh);
+        const trailPositions = new Float32Array(count * 6);
+        for (let i = 0; i < count; i += 1) {
+          const sourceIndex = i * 3;
+          const trailIndex = i * 6;
+          trailPositions[trailIndex] = originalPositions[sourceIndex];
+          trailPositions[trailIndex + 1] = originalPositions[sourceIndex + 1];
+          trailPositions[trailIndex + 2] = originalPositions[sourceIndex + 2];
+          trailPositions[trailIndex + 3] = originalPositions[sourceIndex];
+          trailPositions[trailIndex + 4] = originalPositions[sourceIndex + 1];
+          trailPositions[trailIndex + 5] = originalPositions[sourceIndex + 2];
+        }
+        trailGeometry = new THREE.BufferGeometry();
+        trailGeometry.setAttribute("position", new THREE.BufferAttribute(trailPositions, 3));
+        trailMaterial = new THREE.LineBasicMaterial({
+          color: 0xaec8ff,
+          transparent: true,
+          opacity: 0.085,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending
+        });
+        trailLines = new THREE.LineSegments(trailGeometry, trailMaterial);
+        trailLines.frustumCulled = false;
+        scene.add(trailLines);
         updateScrollProgress();
       } catch (error) {
         showFallback(error);
@@ -244,6 +272,7 @@ export default function ParticlePortrait({ introComplete = true }) {
       if (disposed) return;
       animationFrame = requestAnimationFrame(animate);
       currentProgress += (targetProgress - currentProgress) * (reducedMotion ? 0.22 : 0.09);
+      pointer.lerp(pointerTarget, reducedMotion ? 0.3 : 0.08);
       const easedProgress = easeInOut(currentProgress);
       const elapsed = now * 0.001;
 
@@ -261,7 +290,17 @@ export default function ParticlePortrait({ introComplete = true }) {
           const offsetY = Math.cos(elapsed * speed * 0.58 + phase * 1.2) * drift;
           const offsetZ = Math.sin(elapsed * speed * 0.43 + phase * 0.7) * drift * 1.8;
 
-          dummy.position.set(x + offsetX, y + offsetY, z + offsetZ);
+          const particleX = x + offsetX;
+          const particleY = y + offsetY;
+          const particleZ = z + offsetZ;
+          const dx = particleX - pointer.x;
+          const dy = particleY - pointer.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const influence = reducedMotion ? 0 : Math.max(0, 1 - distance / 1.8) * 0.18;
+          const bendX = distance ? (dx / distance) * influence : 0;
+          const bendY = distance ? (dy / distance) * influence : 0;
+
+          dummy.position.set(particleX + bendX, particleY + bendY, particleZ + influence * 0.7);
           dummy.rotation.z = reducedMotion ? 0 : Math.sin(elapsed * speed * 0.5 + phase) * 0.12 * easedProgress;
           const size = particleSizes[i] * shimmer;
           dummy.scale.set(size, size, 1);
@@ -270,9 +309,23 @@ export default function ParticlePortrait({ introComplete = true }) {
           dummy.scale.set(size * 1.7, size * 1.7, 1);
           dummy.updateMatrix();
           glowMesh.setMatrixAt(i, dummy.matrix);
+          if (trailGeometry) {
+            const trailArray = trailGeometry.attributes.position.array;
+            const trailIndex = i * 6;
+            const previousX = trailArray[trailIndex];
+            const previousY = trailArray[trailIndex + 1];
+            const previousZ = trailArray[trailIndex + 2];
+            trailArray[trailIndex] += (dummy.position.x - previousX) * 0.12;
+            trailArray[trailIndex + 1] += (dummy.position.y - previousY) * 0.12;
+            trailArray[trailIndex + 2] += (dummy.position.z - previousZ) * 0.12;
+            trailArray[trailIndex + 3] = dummy.position.x;
+            trailArray[trailIndex + 4] = dummy.position.y;
+            trailArray[trailIndex + 5] = dummy.position.z;
+          }
         }
         mesh.instanceMatrix.needsUpdate = true;
         glowMesh.instanceMatrix.needsUpdate = true;
+        if (trailGeometry) trailGeometry.attributes.position.needsUpdate = true;
       }
 
       ambientStars.rotation.z = reducedMotion ? 0 : Math.sin(elapsed * 0.08) * 0.025;
@@ -293,10 +346,22 @@ export default function ParticlePortrait({ introComplete = true }) {
       camera.updateProjectionMatrix();
     };
 
+    const onPointerMove = (event) => {
+      if (reducedMotion) return;
+      const rect = host.getBoundingClientRect();
+      const normalizedX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      const normalizedY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(37) / 2) * camera.position.z;
+      pointerTarget.set(normalizedX * visibleHeight * camera.aspect * 0.5, normalizedY * visibleHeight * 0.5);
+    };
+    const onPointerLeave = () => pointerTarget.set(10, 10);
+
     resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(host);
     window.addEventListener("resize", resize);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerleave", onPointerLeave);
     updateScrollProgress();
     animationFrame = requestAnimationFrame(animate);
 
@@ -305,10 +370,14 @@ export default function ParticlePortrait({ introComplete = true }) {
       cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerleave", onPointerLeave);
       resizeObserver.disconnect();
       geometry?.dispose();
       material?.dispose();
       glowMaterial?.dispose();
+      trailGeometry?.dispose();
+      trailMaterial?.dispose();
       ambientGeometry.dispose();
       ambientMaterial.dispose();
       renderer.dispose();

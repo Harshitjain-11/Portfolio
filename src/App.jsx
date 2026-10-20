@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ArrowDownRight, ArrowUpRight, Github, Linkedin, Mail, Sparkles } from "lucide-react";
 import ParticlePortrait from "./ParticlePortrait.jsx";
+import IntroTypography from "./IntroTypography.jsx";
 
 const NAME = "Harshit Jain"; // Edit this if needed.
 const ROLE = "B.Tech AI & Machine Learning Student"; // Edit this if needed.
@@ -56,51 +57,6 @@ function SectionLabel({ children }) {
   return <div className="section-label"><span className="label-dot" />{children}</div>;
 }
 
-const scrambleCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-function IntroSequence({ onComplete }) {
-  const [scrambledName, setScrambledName] = useState("•••••• •••••");
-
-  useEffect(() => {
-    let frame = 0;
-    let interval;
-    const name = "HARSHIT JAIN";
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    const reveal = () => {
-      const visible = Math.min(name.length, Math.floor(frame / 2));
-      setScrambledName(name.split("").map((character, index) => {
-        if (character === " ") return " ";
-        if (index < visible) return character;
-        return scrambleCharacters[Math.floor(Math.random() * scrambleCharacters.length)];
-      }).join(""));
-      frame += 1;
-      if (visible >= name.length) window.clearInterval(interval);
-    };
-
-    interval = window.setInterval(reveal, reducedMotion ? 1 : 75);
-    const timeout = window.setTimeout(onComplete, reducedMotion ? 80 : 3500);
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
-    };
-  }, [onComplete]);
-
-  return (
-    <div className="intro-sequence" aria-label="Opening portfolio animation">
-      <div className="intro-symbol" aria-hidden="true">
-        <span className="intro-orbit" />
-        <span className="intro-stem" />
-        <span className="intro-dot" />
-      </div>
-      <p className="intro-sequence-name">{scrambledName}</p>
-      <p className="intro-sequence-role">AI & MACHINE LEARNING / DEVELOPER</p>
-      <p className="intro-sequence-title">PORTFOLIO</p>
-      <span className="intro-sequence-line" />
-    </div>
-  );
-}
-
 class ParticleErrorBoundary extends React.Component {
   state = { hasError: false };
 
@@ -131,7 +87,7 @@ export default function App() {
 
   return (
     <main className={introComplete ? "intro-finished" : "intro-playing"}>
-      {!introComplete && <IntroSequence onComplete={completeIntro} />}
+      {!introComplete && <IntroTypography onComplete={completeIntro} />}
       <div className="ambient ambient-one" aria-hidden="true" />
       <div className="ambient ambient-two" aria-hidden="true" />
       <nav className="nav shell" aria-label="Main navigation">
