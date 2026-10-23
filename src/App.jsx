@@ -5,7 +5,7 @@ import IntroTypography from "./IntroTypography.jsx";
 
 const NAME = "Harshit Jain"; // Edit this if needed.
 const ROLE = "B.Tech AI & Machine Learning Student"; // Edit this if needed.
-const CONTACT_EMAIL = "your.email@example.com"; // Replace with your email before publishing.
+const CONTACT_EMAIL = "harshitjainp887@gmail.com"; // Replace with your email before publishing.
 
 const projects = [
   {
