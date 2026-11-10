@@ -228,3 +228,32 @@ h1,h2,h3,.wordmark,.project-node-label strong,.tech-constellation-readout>strong
 @media(max-width:900px){.hero{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:6px}.hero h1{font-size:clamp(60px,7.4vw,82px)}.portrait-backdrop{height:min(64svh,520px);min-height:370px}.portrait-scene{padding-left:0}}
 @media(max-width:650px){.hero{min-height:auto;display:flex;flex-direction:column;align-items:stretch;padding-top:98px;padding-bottom:74px;gap:0}.hero-copy{max-width:100%;padding:0}.hero h1{font-size:clamp(48px,13vw,72px);line-height:.98;margin:28px 0 23px}.hero-bottomline{max-width:100%;gap:15px}.hero-bottomline p{font-size:13px}.hero-index{margin-top:28px}.portrait-scene{padding:16px 0 20px}.portrait-backdrop{width:100%;height:min(106vw,440px);min-height:310px}.portrait-caption{font-size:6px}.portrait-watermark{left:0;bottom:17%}.scroll-cue{bottom:17px}}
 @media(prefers-reduced-motion:reduce){.portrait-backdrop:before,.orbit-three,.portrait-crosshair,.portrait-spark{animation:none}.hero-portrait-image{animation:none}}
+
+/* The hero orb lands, throws out light rays, and resolves into the saved portrait. */
+.tech-portrait{--portrait-reveal:0;overflow:hidden}
+.tech-portrait .hero-portrait-image{z-index:4;opacity:var(--portrait-reveal);animation:none;transition:opacity .18s linear;will-change:opacity}
+.tech-portrait.is-complete .hero-portrait-image{opacity:1;animation:portraitFloat 8s ease-in-out infinite}
+.tech-portrait-particles{position:absolute;z-index:3;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
+.tech-orb{position:absolute;z-index:6;left:50%;top:-22%;width:72px;height:72px;opacity:0;transform:translate(-50%,-50%);filter:drop-shadow(0 0 15px rgba(99,156,255,.85)) drop-shadow(0 0 38px rgba(87,111,255,.5));pointer-events:none}
+.tech-portrait.is-active .tech-orb{opacity:1;animation:orbFall .9s .12s cubic-bezier(.17,.72,.22,1) both}
+.tech-orb-aura,.tech-orb-core,.tech-orb-ring,.tech-orb-node{position:absolute;left:50%;top:50%;display:block;border-radius:50%}
+.tech-orb-aura{width:100%;height:100%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,255,255,.94) 0%,rgba(134,191,255,.74) 11%,rgba(73,112,255,.27) 42%,transparent 72%);box-shadow:0 0 35px 9px rgba(100,153,255,.45)}
+.tech-orb-core{width:48%;height:48%;transform:translate(-50%,-50%);background:radial-gradient(circle at 32% 25%,#fff 0 5%,#d6f4ff 12%,#75b7ff 30%,#344dce 57%,#11152c 76%);box-shadow:inset -5px -7px 11px rgba(4,7,24,.8),inset 3px 3px 7px rgba(255,255,255,.9),0 0 16px rgba(175,219,255,.9);animation:orbCoreSpin 2.5s linear infinite}
+.tech-orb-ring{width:118%;height:39%;border:1px solid rgba(213,235,255,.9);box-shadow:0 0 7px rgba(136,192,255,.78),inset 0 0 4px rgba(136,192,255,.3);transform:translate(-50%,-50%) rotate(-35deg);animation:orbRingSpin 1.8s linear infinite}
+.orb-ring-two{width:132%;height:51%;border-color:rgba(158,177,255,.72);transform:translate(-50%,-50%) rotate(52deg);animation:orbRingSpin 2.4s linear infinite reverse}
+.tech-orb-node{width:7px;height:7px;background:#fff;box-shadow:0 0 12px 3px #9bc9ff;animation:orbNode 1.6s linear infinite}
+.orb-node-one{left:10%;top:29%}.orb-node-two{left:80%;top:70%;width:4px;height:4px;animation-delay:-.7s}
+.tech-impact-ring{position:absolute;z-index:2;left:50%;top:25%;width:12px;height:12px;border:1px solid rgba(188,220,255,.95);border-radius:50%;opacity:0;transform:translate(-50%,-50%) scale(.1);pointer-events:none}
+.tech-portrait.is-impacted .tech-impact-ring{animation:impactPulse 1.1s cubic-bezier(.1,.6,.2,1) both}
+.tech-portrait.is-impacted .tech-orb{top:25%;animation:orbImpact .34s .02s ease-in forwards}
+.tech-portrait.is-impacted .tech-orb-aura{animation:auraBurst .65s ease-out both}
+@keyframes orbFall{0%{opacity:0;top:-19%;transform:translate(-50%,-50%) scale(.3) rotate(-70deg)}15%{opacity:1}72%{top:23%;transform:translate(-50%,-50%) scale(1.08) rotate(310deg)}88%{top:20%;transform:translate(-50%,-50%) scale(.96) rotate(390deg)}100%{top:25%;transform:translate(-50%,-50%) scale(1) rotate(450deg)}}
+@keyframes orbImpact{to{opacity:0;transform:translate(-50%,-50%) scale(1.75) rotate(720deg);filter:blur(9px)}}
+@keyframes orbCoreSpin{to{filter:hue-rotate(30deg) brightness(1.18)}}
+@keyframes orbRingSpin{to{transform:translate(-50%,-50%) rotate(325deg)}}
+@keyframes orbNode{to{transform:rotate(360deg) translateX(9px)}}
+@keyframes auraBurst{0%{opacity:1;transform:translate(-50%,-50%) scale(.8)}45%{opacity:.95;transform:translate(-50%,-50%) scale(1.8)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.4)}}
+@keyframes impactPulse{0%{opacity:.95;transform:translate(-50%,-50%) scale(.1);box-shadow:0 0 20px 7px rgba(123,178,255,.85)}100%{opacity:0;transform:translate(-50%,-50%) scale(28);box-shadow:0 0 0 1px rgba(123,178,255,0)}}
+@media(max-width:650px){.tech-orb{width:58px;height:58px}.tech-portrait.is-active .tech-orb{animation-name:orbFallMobile}.tech-portrait.is-impacted .tech-orb{animation-name:orbImpact}.tech-impact-ring{top:25%}}
+@keyframes orbFallMobile{0%{opacity:0;top:-18%;transform:translate(-50%,-50%) scale(.3) rotate(-70deg)}15%{opacity:1}75%{top:24%;transform:translate(-50%,-50%) scale(1.05) rotate(310deg)}100%{top:25%;transform:translate(-50%,-50%) scale(1) rotate(450deg)}}
+@media(prefers-reduced-motion:reduce){.tech-orb,.tech-impact-ring,.tech-orb-core,.tech-orb-ring,.tech-orb-node{animation:none!important}.tech-orb{display:none}.tech-portrait .hero-portrait-image{opacity:1;transition:none}}

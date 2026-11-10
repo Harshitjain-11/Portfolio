@@ -3,6 +3,7 @@ import { ArrowDown, ArrowDownRight, ArrowUpRight, Github, Linkedin, Mail, MoveUp
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import IntroSequence from "./IntroSequence.jsx";
+import TechPortrait from "./TechPortrait.jsx";
 import ProjectConstellation from "./ProjectConstellation.jsx";
 import TechConstellation from "./TechConstellation.jsx";
 import { IDENTITY, SOCIAL_LINKS, PROJECTS, SKILLS, CREDENTIALS } from "./portfolioData.js";
@@ -61,12 +62,8 @@ function ProjectVisual({ project, index }) {
 export default function App() {
   const mainRef = useRef(null);
   const [activeSection, setActiveSection] = useState(() => window.location.hash.slice(1) || "top");
-  const [introActive, setIntroActive] = useState(() => {
-    try { return sessionStorage.getItem("hj-cinematic-intro") !== "done" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
-    catch { return !window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
-  });
+  const [introActive, setIntroActive] = useState(() => !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   function finishIntro() {
-    try { sessionStorage.setItem("hj-cinematic-intro", "done"); } catch { /* storage can be unavailable */ }
     setIntroActive(false);
   }
   useEffect(() => {
@@ -132,12 +129,7 @@ export default function App() {
         <div className="hero-index" data-reveal>PORTFOLIO / 2026</div>
       </div>
       <div className="portrait-scene">
-        <div className="portrait-backdrop">
-          <span className="portrait-orbit orbit-one"/><span className="portrait-orbit orbit-two"/><span className="portrait-orbit orbit-three"/>
-          <span className="portrait-spark spark-one"/><span className="portrait-spark spark-two"/><span className="portrait-spark spark-three"/>
-          <img className="hero-portrait-image" src="/portfolio-image.png" alt="Portrait of Harshit Jain"/>
-          <span className="portrait-crosshair">+</span><span className="portrait-watermark">HJ / 01<br/>AI + ML</span>
-        </div>
+        <TechPortrait active={!introActive}/>
         <p className="portrait-caption"><span>01 / 03</span> BUILDING AT THE INTERSECTION OF PEOPLE & SYSTEMS</p>
       </div>
       <a className="scroll-cue" href="#work" data-reveal><span>SCROLL TO EXPLORE</span><ArrowDown size={14}/></a>

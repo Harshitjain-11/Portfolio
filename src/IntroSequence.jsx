@@ -20,9 +20,14 @@ export default function IntroSequence({ onComplete }) {
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 40);
     camera.position.z = 7;
     const orb = new THREE.Group();
-    const ball = new THREE.Mesh(new THREE.SphereGeometry(.11, 40, 40), new THREE.MeshBasicMaterial({ color: 0xf7f8ff }));
-    const halo = new THREE.Mesh(new THREE.SphereGeometry(.19, 32, 32), new THREE.MeshBasicMaterial({ color: 0x9fb4ff, transparent: true, opacity: .12, side: THREE.BackSide }));
-    orb.add(ball, halo);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(.2, 48, 48), new THREE.MeshPhysicalMaterial({ color: 0x94baff, metalness: .82, roughness: .18, clearcoat: 1, emissive: 0x254bff, emissiveIntensity: .7, transparent: true, opacity: .96 }));
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(.34, 40, 40), new THREE.MeshBasicMaterial({ color: 0x9fb4ff, transparent: true, opacity: .09, side: THREE.BackSide }));
+    const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xc8d7ff, transparent: true, opacity: .68 });
+    const ringA = new THREE.Mesh(new THREE.TorusGeometry(.3, .008, 8, 96), ringMaterial);
+    const ringB = new THREE.Mesh(new THREE.TorusGeometry(.37, .004, 8, 96), ringMaterial.clone());
+    ringA.rotation.set(.75, .2, -.3);
+    ringB.rotation.set(-.55, .5, .4);
+    orb.add(ball, halo, ringA, ringB);
     scene.add(orb);
     scene.add(new THREE.PointLight(0xb9c8ff, 3.5, 5));
     try {
@@ -44,6 +49,10 @@ export default function IntroSequence({ onComplete }) {
     const render = () => {
       if (disposed) return;
       frame = requestAnimationFrame(render);
+      orb.rotation.y += .012;
+      orb.rotation.x += .004;
+      ringA.rotation.z += .009;
+      ringB.rotation.y -= .006;
       if (renderer) renderer.render(scene, camera);
     };
     window.addEventListener("resize", resize);
@@ -75,10 +84,11 @@ export default function IntroSequence({ onComplete }) {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       timeline?.kill();
-      ball.geometry.dispose();
-      ball.material.dispose();
-      halo.geometry.dispose();
-      halo.material.dispose();
+      orb.traverse((object) => {
+        object.geometry?.dispose();
+        if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
+        else object.material?.dispose();
+      });
       renderer?.dispose();
       if (renderer?.domElement.parentNode === orbHost) orbHost.removeChild(renderer.domElement);
     };
