@@ -117,6 +117,15 @@ export default function IntroSequence({ onComplete }) {
 
     const q = (selector) => root.querySelector(selector);
     const qa = (selector) => [...root.querySelectorAll(selector)];
+    const nameLetters = qa(".intro-letter");
+    const sphereOrigin = { x: root.clientWidth / 2, y: root.clientHeight * .34 };
+    const letterOrigins = nameLetters.map((letter) => {
+      const bounds = letter.getBoundingClientRect();
+      return {
+        x: sphereOrigin.x - (bounds.left + bounds.width / 2),
+        y: sphereOrigin.y - (bounds.top + bounds.height / 2),
+      };
+    });
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     timeline = gsap.timeline({
       defaults: { ease: "power3.inOut" },
@@ -138,11 +147,25 @@ export default function IntroSequence({ onComplete }) {
         .to(orb.scale, { x: 1.32, y: 1.53, z: 1.38, duration: .14, ease: "back.out(2.6)" }, 1.04)
         .to(orb.position, { y: .72, duration: .38, ease: "bounce.out" }, 1.16)
         .to(orb.scale, { x: 1.4, y: 1.4, z: 1.4, duration: .28, ease: "elastic.out(1,.55)" }, 1.16)
+        .fromTo(q(".intro-bounce-wave"), { autoAlpha: .95, scale: .08 }, { autoAlpha: 0, scale: 13, duration: .8, ease: "power3.out" }, .94)
         .to(q(".intro-light-streak"), { scaleX: 1, duration: .72, ease: "expo.out" }, .8)
         .fromTo(q(".intro-kicker"), { autoAlpha: 0, y: 13, letterSpacing: ".38em" }, { autoAlpha: 1, y: 0, letterSpacing: ".22em", duration: .48, ease: "power3.out" }, 1.55)
-        .fromTo(qa(".intro-letter"), { autoAlpha: 0, y: -190, z: 260, rotateX: 82, rotateY: -24, scale: .46, filter: "blur(15px)" }, { autoAlpha: 1, y: 0, z: 0, rotateX: 0, rotateY: 0, scale: 1, filter: "blur(0px)", duration: .82, stagger: .036, ease: "back.out(1.2)" }, 1.68)
-        .fromTo(q(".intro-title-index"), { autoAlpha: 0, y: 10, letterSpacing: ".36em" }, { autoAlpha: 1, y: 0, letterSpacing: ".18em", duration: .52, ease: "power3.out" }, 2.4)
-        .fromTo(q(".intro-tagline"), { autoAlpha: 0, y: 14, filter: "blur(4px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: .5, ease: "power3.out" }, 2.58)
+        .fromTo(nameLetters,
+          {
+            autoAlpha: 0,
+            x: (index) => letterOrigins[index].x,
+            y: (index) => letterOrigins[index].y,
+            z: -180,
+            rotateX: 68,
+            rotateY: (index) => index < nameLetters.length / 2 ? -38 : 38,
+            scale: .2,
+            filter: "blur(16px)",
+          },
+          { autoAlpha: 1, x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, scale: 1, filter: "blur(0px)", duration: .96, stagger: { each: .065, from: "center" }, ease: "back.out(1.25)" },
+          .94,
+        )
+        .fromTo(q(".intro-title-index"), { autoAlpha: 0, y: 10, letterSpacing: ".36em" }, { autoAlpha: 1, y: 0, letterSpacing: ".18em", duration: .52, ease: "power3.out" }, 2.25)
+        .fromTo(q(".intro-tagline"), { autoAlpha: 0, y: 14, filter: "blur(4px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: .5, ease: "power3.out" }, 2.42)
         .fromTo(q(".intro-bottomline"), { autoAlpha: 0, y: 15 }, { autoAlpha: 1, y: 0, duration: .5 }, 1.75)
         .to(q(".intro-progress-fill"), { scaleX: 1, duration: 1.55, ease: "none" }, 2.1)
         .to(q(".intro-flash"), { autoAlpha: .9, duration: .08 }, 3.72)
@@ -168,6 +191,7 @@ export default function IntroSequence({ onComplete }) {
   return <div className="cinematic-intro" ref={rootRef} aria-label="Portfolio opening sequence">
     <div className="intro-orb-scene" ref={orbHostRef}/>
     <div className="intro-core-glow" aria-hidden="true"/>
+    <div className="intro-bounce-wave" aria-hidden="true"/>
     <div className="intro-light-streak" aria-hidden="true"/>
     <div className="intro-vignette" aria-hidden="true"/>
     <header className="intro-topline"><span className="intro-mark">HJ<span>.</span></span><span className="intro-edition">DIGITAL PORTFOLIO <i/> 2026</span></header>
