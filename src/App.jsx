@@ -93,20 +93,34 @@ export default function App() {
     const root = mainRef.current;
     if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
     gsap.registerPlugin(ScrollTrigger);
+    let refreshFrame = 0;
     const context = gsap.context(() => {
-      gsap.utils.toArray("[data-reveal]").forEach((element, index) => {
-        const heroItem = element.closest(".hero");
-        gsap.fromTo(element,
-          { autoAlpha: 0, y: heroItem ? 22 : 30, filter: "blur(7px)" },
+      const sectionTitles = gsap.utils.toArray("section:not(.hero) h2[data-reveal]");
+      const titleSet = new Set(sectionTitles);
+      sectionTitles.forEach((heading) => {
+        gsap.fromTo(heading,
+          { autoAlpha: 0, y: 48, scale: .985, filter: "blur(12px)", clipPath: "inset(0 0 85% 0)" },
           {
-            autoAlpha: 1, y: 0, filter: "blur(0px)", duration: .82,
-            delay: heroItem ? index * .09 : 0, ease: "power3.out",
-            scrollTrigger: { trigger: element, start: "top 88%", toggleActions: "play none none reverse" },
+            autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", clipPath: "inset(0 0 0% 0)",
+            duration: 1.05, ease: "power4.out",
+            scrollTrigger: { trigger: heading, start: "top 82%", toggleActions: "play none none reverse", fastScrollEnd: true },
           },
         );
       });
+      gsap.utils.toArray("[data-reveal]").filter((element) => !titleSet.has(element)).forEach((element, index) => {
+        const heroItem = element.closest(".hero");
+        gsap.fromTo(element,
+          { autoAlpha: 0, y: heroItem ? 22 : 42, x: heroItem ? 0 : 12, scale: heroItem ? 1 : .99, filter: heroItem ? "blur(7px)" : "blur(10px)" },
+          {
+            autoAlpha: 1, y: 0, x: 0, scale: 1, filter: "blur(0px)", duration: heroItem ? .82 : .95,
+            delay: heroItem ? index * .09 : Math.min(index % 4, 3) * .055, ease: "power4.out",
+            scrollTrigger: { trigger: element, start: heroItem ? "top 88%" : "top 84%", toggleActions: "play none none reverse", fastScrollEnd: true },
+          },
+        );
+      });
+      refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
     }, root);
-    return () => context.revert();
+    return () => { cancelAnimationFrame(refreshFrame); context.revert(); };
   }, []);
 
   return <main ref={mainRef}>
