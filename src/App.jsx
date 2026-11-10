@@ -1,227 +1,172 @@
-import React, { useState } from "react";
-import { ArrowDownRight, ArrowUpRight, Github, Linkedin, Mail, Sparkles } from "lucide-react";
-import ParticlePortrait from "./ParticlePortrait.jsx";
-import IntroTypography from "./IntroTypography.jsx";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ArrowDown, ArrowDownRight, ArrowUpRight, Github, Linkedin, Mail, MoveUpRight } from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import IntroSequence from "./IntroSequence.jsx";
+import ProjectConstellation from "./ProjectConstellation.jsx";
+import TechConstellation from "./TechConstellation.jsx";
+import { IDENTITY, SOCIAL_LINKS, PROJECTS, SKILLS, CREDENTIALS } from "./portfolioData.js";
 
-const NAME = "Harshit Jain"; // Edit this if needed.
-const ROLE = "B.Tech AI & Machine Learning Student"; // Edit this if needed.
-const CONTACT_EMAIL = "harshitjainp887@gmail.com"; // Replace with your email before publishing.
+function Index({ children }) { return <p className="eyebrow" data-reveal><span className="eyebrow-mark" />{children}</p>; }
 
-const projects = [
-  {
-    number: "01",
-    name: "DINEaus",
-    type: "FULL-STACK · AI / NLP",
-    description: "A restaurant discovery and table-booking platform with real-time interactions and an AI-assisted conversational experience.",
-    stack: ["Node.js", "Express", "EJS", "MySQL", "Socket.IO", "Flask"],
-    link: "https://github.com/Harshitjain-11/DINEaus.git",
-    linkLabel: "View repository"
-  },
-  {
-    number: "02",
-    name: "CampusAssist",
-    type: "APPLIED NLP · BACKEND",
-    description: "A college enquiry chatbot built to answer common student questions and support campus-visit scheduling through a structured conversational flow.",
-    stack: ["Python", "Flask", "NLTK", "scikit-learn", "TF-IDF", "SQLite"],
-    link: "",
-    linkLabel: ""
-  },
-  {
-    number: "03",
-    name: "FaceVault",
-    type: "COMPUTER VISION",
-    description: "A face-detection and recognition web app using OpenCV, with tools to capture faces, train a local recognizer, and identify faces in real time.",
-    stack: ["Python", "Flask", "OpenCV", "LBPH"],
-    link: "https://github.com/Harshitjain-11/face-detection-project-pbl.git",
-    linkLabel: "View repository"
-  }
-];
-
-const skills = [
-  { title: "Languages", items: "Python · JavaScript · Java · SQL" },
-  { title: "Web & backend", items: "HTML · CSS · Node.js · Express · Flask · REST APIs" },
-  { title: "AI & data", items: "Machine Learning · NLP · scikit-learn · NLTK · spaCy · OpenCV" },
-  { title: "Tools", items: "Git · GitHub · MySQL · SQLite · Socket.IO" }
-];
-
-const capabilities = [
-  "Full-stack web development",
-  "Applied AI and machine learning",
-  "Natural language processing",
-  "Computer vision",
-  "REST APIs and backend systems",
-  "Responsive interface design"
-];
-
-function SectionLabel({ children }) {
-  return <div className="section-label"><span className="label-dot" />{children}</div>;
+function SkillTree() {
+  const [active, setActive] = useState({ title: "AI & Machine Learning", items: SKILLS[0].items, evidence: SKILLS[0].evidence });
+  return <div className="skill-tree-layout">
+    <div className="skill-tree" role="tree" aria-label="Skills connected to project experience">
+      <div className="tree-root"><span className="tree-root-pulse"/> Harshit’s toolkit</div>
+      <div className="tree-branches">{SKILLS.map((group, index) => <section className="tree-branch" key={group.title} role="treeitem" aria-expanded="true">
+        <button className={`tree-category ${active.title === group.title ? "is-active" : ""}`} onMouseEnter={() => setActive(group)} onFocus={() => setActive(group)} onClick={() => setActive(group)}><span className="tree-node-dot"/>{group.title}<i>0{index + 1}</i></button>
+        <div className="tree-leaves" role="group">{group.items.split(" · ").map((item) => <button key={item} className={`tree-leaf ${active.skill === item ? "is-active" : ""}`} onMouseEnter={() => setActive({ ...group, skill: item })} onFocus={() => setActive({ ...group, skill: item })} onClick={() => setActive({ ...group, skill: item })}><span/>{item}</button>)}</div>
+      </section>)}</div>
+    </div>
+    <aside className="skill-readout" aria-live="polite"><span className="readout-index">SELECTED NODE / {active.skill || active.title}</span><h3>{active.skill || active.title}</h3><p>{active.evidence}</p><div className="readout-link">CONNECTED TO <span>{active.evidence.split(",")[0]}</span><ArrowUpRight size={15}/></div></aside>
+  </div>;
 }
 
-class ParticleErrorBoundary extends React.Component {
-  state = { hasError: false };
+function CredentialTree() {
+  const credentials = [...CREDENTIALS.certifications, ...CREDENTIALS.internships, ...CREDENTIALS.badges];
+  const [selected, setSelected] = useState(credentials[0]);
+  const getProfileUrl = (item) => {
+    const issuer = item.issuer.toLowerCase();
+    if (issuer.includes("google")) return SOCIAL_LINKS.googleSkills;
+    if (issuer.includes("salesforce")) return SOCIAL_LINKS.salesforce;
+    if (issuer.includes("oracle") || issuer.includes("uipath")) return SOCIAL_LINKS.credly;
+    return SOCIAL_LINKS.linkedin;
+  };
+  return <div className="credential-tree-layout">
+    <div className="credential-nodes" role="list" aria-label="Certificates and badges. Select an item to view its scan.">
+      {credentials.map((item, i) => <button type="button" role="listitem" key={item.title} className={`credential-node ${selected.title === item.title ? "is-active" : ""}`} onMouseEnter={() => setSelected(item)} onFocus={() => setSelected(item)} onClick={() => setSelected(item)}><img className="credential-node-thumb" src={item.image} alt="" loading="lazy"/><span className="credential-node-text"><small>{item.type} / {item.issuer}</small><strong>{item.title}</strong><em>{item.date}</em></span><span className="credential-node-number">{String(i + 1).padStart(2,"0")}</span></button>)}
+    </div>
+    <aside className="credential-preview" aria-live="polite">
+      <div className="credential-scan-label"><span>ORIGINAL SCAN</span><span>{selected.type.toUpperCase()}</span></div>
+      <div className="credential-document-stage"><img key={selected.image} src={selected.image} alt={`Original ${selected.type} for ${selected.title}`} /></div>
+      <div className="credential-preview-caption"><strong>{selected.title}</strong><span>{selected.issuer} · {selected.date}</span></div>
+      <a href={selected.verifyUrl || getProfileUrl(selected)} target="_blank" rel="noreferrer">VIEW PROFILE RECORD <ArrowUpRight size={14}/></a>
+    </aside>
+  </div>;
+}
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error("Particle portrait failed to render:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="particle-portrait portrait-fallback">
-          <img className="portrait-fallback-image" src="/portrait.jpg" alt="Portrait of Harshit Jain" />
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
+function ProjectVisual({ project, index }) {
+  return <div className={`project-visual visual-${index + 1}`} aria-hidden="true">
+    <div className="visual-topline"><span>FIELD NOTES / 0{index + 1}</span><span>HJ—{String(index + 24).padStart(2, "0")}</span></div>
+    <div className="visual-art">
+      {index === 0 && <><div className="assist-orbit orbit-a"/><div className="assist-orbit orbit-b"/><div className="assist-core">CA<span>CHAT / 01</span></div><div className="data-chip chip-a">intent → answer</div><div className="data-chip chip-b">TF–IDF</div></>}
+      {index === 1 && <><div className="food-ring ring-a"/><div className="food-ring ring-b"/><div className="food-center">DINE<span>ORDER / CONNECT</span></div><div className="signal signal-a"/><div className="signal signal-b"/></>}
+      {index === 2 && <><div className="face-frame"><i/><b/><em/></div><div className="face-scan"/><div className="face-readout">LBPH <span>VISION / LIVE</span></div></>}
+    </div>
+    <span className="visual-title">{project.name}</span>
+  </div>;
 }
 
 export default function App() {
-  const [introComplete, setIntroComplete] = useState(false);
-  const completeIntro = React.useCallback(() => setIntroComplete(true), []);
+  const mainRef = useRef(null);
+  const [activeSection, setActiveSection] = useState(() => window.location.hash.slice(1) || "top");
+  const [introActive, setIntroActive] = useState(() => {
+    try { return sessionStorage.getItem("hj-cinematic-intro") !== "done" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch { return !window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  });
+  function finishIntro() {
+    try { sessionStorage.setItem("hj-cinematic-intro", "done"); } catch { /* storage can be unavailable */ }
+    setIntroActive(false);
+  }
+  useEffect(() => {
+    const sectionIds = ["top", "work", "about", "credentials"];
+    const sections = sectionIds.map((id) => document.getElementById(id)).filter(Boolean);
+    const observer = new IntersectionObserver((entries) => {
+      const current = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (current) setActiveSection(current.target.id);
+    }, { rootMargin: "-28% 0px -58% 0px", threshold: [0, .15, .35, .6] });
+    sections.forEach((section) => observer.observe(section));
+    const updateProgress = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+      document.documentElement.style.setProperty("--scroll-progress", progress);
+    };
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, []);
 
-  return (
-    <main className={introComplete ? "intro-finished" : "intro-playing"}>
-      {!introComplete && <IntroTypography onComplete={completeIntro} />}
-      <div className="ambient ambient-one" aria-hidden="true" />
-      <div className="ambient ambient-two" aria-hidden="true" />
-      <nav className="nav shell" aria-label="Main navigation">
-        <a className="brand" href="#top" aria-label="Harshit Jain home"><span className="brand-word">HARSHIT JAIN</span><span className="brand-mark">H</span><i>.</i></a>
-        <div className="nav-links">
-          <a href="#work">Work</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-        </div>
-        <a className="nav-status" href="#contact"><span className="status-pulse" /> Open to opportunities</a>
-        <span className="menu-mark" aria-hidden="true"><i /><i /></span>
-      </nav>
+  useLayoutEffect(() => {
+    const root = mainRef.current;
+    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    gsap.registerPlugin(ScrollTrigger);
+    const context = gsap.context(() => {
+      gsap.utils.toArray("[data-reveal]").forEach((element, index) => {
+        const heroItem = element.closest(".hero");
+        gsap.fromTo(element,
+          { autoAlpha: 0, y: heroItem ? 22 : 30, filter: "blur(7px)" },
+          {
+            autoAlpha: 1, y: 0, filter: "blur(0px)", duration: .82,
+            delay: heroItem ? index * .09 : 0, ease: "power3.out",
+            scrollTrigger: { trigger: element, start: "top 88%", toggleActions: "play none none reverse" },
+          },
+        );
+      });
+    }, root);
+    return () => context.revert();
+  }, []);
 
-      <section className="hero shell" id="top">
-        <div className="hero-copy">
-          <div className="eyebrow reveal reveal-one"><Sparkles size={14} strokeWidth={1.8} /> AI / ML · COMPUTER VISION · NLP <span className="eyebrow-year">2026 / 27</span></div>
-          <h1 className="portfolio-title reveal reveal-two">PORTFOLIO</h1>
-          <div className="hero-rule reveal reveal-three"><span /></div>
-          <div className="intro reveal reveal-four">
-            <p className="intro-kicker">HEY, I'M</p>
-            <h2>{NAME}</h2>
-            <p className="role">{ROLE}</p>
-            <p className="hero-description">I’m an AI & Machine Learning student building practical computer-vision, NLP, and full-stack experiences — from the first interface to the logic behind it.</p>
-          </div>
-          <div className="hero-actions reveal reveal-five">
-            <a className="reference-arrow" href="#work" aria-label="Explore my work"><ArrowDownRight size={17} /></a>
-            <a className="reference-contact" href="#contact">Contact</a>
-            <a className="button button-primary" href="#contact">Let’s connect <ArrowUpRight size={16} /></a>
-            <a className="text-link" href="#work">Explore my work <ArrowDownRight size={16} /></a>
-          </div>
-          <div className="hero-meta reveal reveal-five"><span>BASED IN INDIA</span><span className="meta-line" /><span>BUILDING · LEARNING · ITERATING</span></div>
-        </div>
-        <div className="hero-visual-stage">
-          <div className="hero-visual" aria-label="Portrait particle animation">
-            <div className="visual-index"><span>01</span> / THE HUMAN BEHIND THE CODE</div>
-            <ParticleErrorBoundary>
-              <ParticlePortrait introComplete={introComplete} />
-            </ParticleErrorBoundary>
-            <div className="visual-caption"><span className="caption-line" /> Pixels into perspective.</div>
-            <div className="vertical-note">CREATIVE CODE / HUMAN-CENTRED BUILDING</div>
-          </div>
-        </div>
-        <a className="scroll-cue" href="#work"><span className="scroll-line" /> SCROLL TO EXPLORE</a>
-      </section>
+  return <main ref={mainRef}>
+    {introActive && <IntroSequence onComplete={finishIntro}/>}
+    <header className="site-header wrap">
+      <span className="nav-progress" aria-hidden="true"/>
+      <a className="wordmark" href="#top" aria-label="Harshit Jain, home">HJ<span>.</span></a>
+      <nav aria-label="Main navigation"><a href="#work" aria-current={activeSection === "work" ? "location" : undefined}>Work <sup>03</sup></a><a href="#about" aria-current={activeSection === "about" ? "location" : undefined}>About</a><a href="#credentials" aria-current={activeSection === "credentials" ? "location" : undefined}>Credentials</a></nav>
+      <a className="header-contact" href={`mailto:${IDENTITY.email}`}>Let’s talk <MoveUpRight size={15}/></a>
+    </header>
 
-      <section className="resume-intro shell" id="resume">
-        <div className="resume-intro-heading">
-          <SectionLabel>PROFILE / 01</SectionLabel>
-          <h2>Build useful things.<br /><span>Keep learning.</span></h2>
+    <section className="hero wrap" id="top">
+      <div className="hero-copy">
+        <p className="hero-kicker" data-reveal><span className="availability-dot"/> {IDENTITY.location} <i/> B.TECH CSE · AI & ML</p>
+        <h1 data-reveal>Ideas into<br/><span>intelligence.</span></h1>
+        <div className="hero-bottomline" data-reveal>
+          <p>I’m <strong>Harshit Jain</strong> — a developer building useful software across applied AI, computer vision and the web.</p>
+          <a className="round-cta" href="#work" aria-label="Explore selected work"><ArrowDownRight/></a>
         </div>
-        <div className="resume-intro-card">
-          <p><strong>Hey, I’m Harshit.</strong> I’m a B.Tech AI & Machine Learning student who enjoys turning ideas into practical software. My work sits between thoughtful interfaces, dependable backend systems, and applied AI.</p>
-          <a className="text-link" href="#contact">Let’s work together <ArrowUpRight size={16} /></a>
+        <div className="hero-index" data-reveal>PORTFOLIO / 2026</div>
+      </div>
+      <div className="portrait-scene">
+        <div className="portrait-backdrop">
+          <span className="portrait-orbit orbit-one"/><span className="portrait-orbit orbit-two"/><span className="portrait-orbit orbit-three"/>
+          <span className="portrait-spark spark-one"/><span className="portrait-spark spark-two"/><span className="portrait-spark spark-three"/>
+          <img className="hero-portrait-image" src="/portfolio-image.png" alt="Portrait of Harshit Jain"/>
+          <span className="portrait-crosshair">+</span><span className="portrait-watermark">HJ / 01<br/>AI + ML</span>
         </div>
-      </section>
+        <p className="portrait-caption"><span>01 / 03</span> BUILDING AT THE INTERSECTION OF PEOPLE & SYSTEMS</p>
+      </div>
+      <a className="scroll-cue" href="#work" data-reveal><span>SCROLL TO EXPLORE</span><ArrowDown size={14}/></a>
+    </section>
 
-      <section className="capabilities-section shell" aria-labelledby="capabilities-title">
-        <div className="capabilities-heading">
-          <SectionLabel>WHAT I CAN DO</SectionLabel>
-          <h2 id="capabilities-title">Useful systems,<br /><span>carefully made.</span></h2>
-        </div>
-        <div className="capability-list">
-          {capabilities.map((capability, index) => (
-            <div className="capability-row" key={capability}>
-              <span>0{index + 1}</span>
-              <strong>{capability}</strong>
-              <ArrowUpRight size={15} />
-            </div>
-          ))}
-        </div>
-      </section>
+    <section className="manifesto wrap" id="about">
+      <Index>THE SHORT VERSION</Index>
+      <div><h2 data-reveal>Curiosity is the<br/><span>starting point.</span></h2><p data-reveal>I learn by making things real: a chatbot that can guide a student, a computer-vision system that works with a webcam, a platform that connects a restaurant’s moving parts. I’m a B.Tech AI & Machine Learning student at ITM Gwalior, growing across applied ML and full-stack engineering.</p><a className="inline-link" data-reveal href={SOCIAL_LINKS.linkedin} target="_blank" rel="noreferrer">A little more about me <ArrowUpRight size={15}/></a></div>
+    </section>
 
-      <section className="work-section section shell" id="work">
-        <div className="section-heading">
-          <div><SectionLabel>SELECTED WORK</SectionLabel><h2>Curiosity, made<br /><span>functional.</span></h2></div>
-          <p className="section-aside">A selection of academic and personal builds exploring interfaces, intelligent systems, and practical software.</p>
-        </div>
-        <div className="project-list">
-          {projects.map((project) => (
-            <article className="project-row" key={project.number}>
-              <div className="project-number">{project.number}</div>
-              <div className="project-main">
-                <div className="project-type">{project.type}</div>
-                <h3>{project.name}</h3>
-                <p>{project.description}</p>
-                <div className="tag-list">{project.stack.map((item) => <span key={item}>{item}</span>)}</div>
-              </div>
-              <div className="project-action">
-                {project.link ? (
-                  <a href={project.link} target="_blank" rel="noreferrer" aria-label={`${project.name} repository`} className="round-link"><ArrowUpRight size={19} /></a>
-                ) : <span className="round-link disabled" aria-label="Repository link not added"><ArrowUpRight size={19} /></span>}
-                {project.link && <a className="repo-text" href={project.link} target="_blank" rel="noreferrer">{project.linkLabel}</a>}
-              </div>
-            </article>
-          ))}
-        </div>
-        <p className="project-footnote">Project descriptions are concise summaries. Open each repository for implementation details where a public link is available.</p>
-      </section>
+    <section className="work wrap" id="work">
+      <div className="section-top"><div><Index>SELECTED WORK / 2025—26</Index><h2 data-reveal>Made to work<br/><span>in the real world.</span></h2></div><p data-reveal>Three projects. Three different problems. One habit: follow the details all the way through.</p></div>
+      <div data-reveal><ProjectConstellation projects={PROJECTS}/></div>
+    </section>
 
-      <section className="about-section section shell" id="about">
-        <div className="about-intro">
-          <SectionLabel>A LITTLE ABOUT ME</SectionLabel>
-          <h2>Code with intent.<br /><span>Learn by building.</span></h2>
-          <p>I’m a B.Tech student focused on AI and Machine Learning, with a strong interest in software engineering and full-stack product development. I enjoy connecting thoughtful UI with reliable backend systems and practical AI features.</p>
-          <a className="text-link" href="https://www.linkedin.com/in/harshit-jain-7561a1347/" target="_blank" rel="noreferrer">More on LinkedIn <ArrowUpRight size={16} /></a>
-        </div>
-        <div className="skills-panel">
-          <div className="skills-panel-top"><span>TOOLKIT</span><span>01 — 04</span></div>
-          {skills.map((skill, index) => (
-            <div className="skill-row" key={skill.title}>
-              <span className="skill-index">0{index + 1}</span>
-              <div><h3>{skill.title}</h3><p>{skill.items}</p></div>
-            </div>
-          ))}
-        </div>
-      </section>
+    <section className="toolkit wrap">
+      <div className="toolkit-intro"><Index>TOOLS I REACH FOR</Index><h2 data-reveal>Learn it.<br/><span>Build with it.</span></h2><p data-reveal>No scorecards. Just the work where I’ve used these tools.</p></div>
+      <div data-reveal><TechConstellation projects={PROJECTS}/></div>
+    </section>
 
-      <section className="contact-section shell" id="contact">
-        <div className="contact-top"><SectionLabel>HAVE A GOOD PROBLEM?</SectionLabel><span className="contact-coordinate">INDIA · AVAILABLE FOR THE NEXT CHALLENGE</span></div>
-        <h2>Let’s make<br /><span>something matter.</span></h2>
-        <div className="contact-bottom">
-          <p>Open to learning opportunities, internships, and collaborations where I can contribute, grow, and ship thoughtful work.</p>
-          <a className="button button-primary contact-button" href={`mailto:${CONTACT_EMAIL}`}>Start a conversation <Mail size={16} /></a>
-        </div>
-      </section>
+    <section className="credentials wrap" id="credentials">
+      <div className="section-top credential-heading"><div><Index>LEARNING IN PUBLIC</Index><h2 data-reveal>Progress, with<br/><span>receipts.</span></h2></div><p data-reveal>Choose a credential to view its original certificate or badge scan.</p></div>
+      <div className="credential-profile-links">{CREDENTIALS.profiles.map((profile) => <a key={profile.platform} href={profile.url} target="_blank" rel="noreferrer">{profile.platform}<ArrowUpRight size={13}/></a>)}</div>
+      <div data-reveal><CredentialTree/></div>
+    </section>
 
-      <footer className="footer shell">
-        <a className="brand footer-brand" href="#top"><span className="brand-word">HARSHIT JAIN</span><span className="brand-mark">H</span><i>.</i></a>
-        <p>DESIGNED & BUILT WITH CURIOSITY <span>© {new Date().getFullYear()}</span></p>
-        <div className="social-links">
-          <a href="https://github.com/Harshitjain-11" target="_blank" rel="noreferrer" aria-label="GitHub"><Github size={17} /></a>
-          <a href="https://www.linkedin.com/in/harshit-jain-7561a1347/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin size={17} /></a>
-        </div>
-      </footer>
-    </main>
-  );
+    <footer className="footer">
+      <div className="footer-atmosphere" aria-hidden="true"><svg viewBox="0 0 1440 520" preserveAspectRatio="none"><path d="M-80 410 C170 290 300 490 520 370 S850 270 1030 355 S1270 460 1520 250"/><path d="M-30 470 C230 340 340 500 600 410 S870 330 1070 410 S1330 390 1490 330"/><path d="M200 540 C390 410 500 490 760 440 S1090 350 1270 410"/></svg></div>
+      <div className="footer-inner wrap"><Index>HAVE A GOOD PROBLEM?</Index><h2 data-reveal>Let’s build<br/><span>something useful.</span></h2><div className="footer-bottom"><a className="footer-email" data-reveal href={`mailto:${IDENTITY.email}`}>{IDENTITY.email}<ArrowUpRight size={17}/></a><div className="footer-social" data-reveal><a href={SOCIAL_LINKS.github} target="_blank" rel="noreferrer"><Github size={16}/> GitHub <ArrowUpRight size={12}/></a><a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noreferrer"><Linkedin size={16}/> LinkedIn <ArrowUpRight size={12}/></a></div><span className="copyright">© {new Date().getFullYear()} HARSHIT JAIN</span></div></div>
+    </footer>
+  </main>;
 }

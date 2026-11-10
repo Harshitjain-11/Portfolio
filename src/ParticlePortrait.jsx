@@ -17,7 +17,6 @@ export default function ParticlePortrait({ introComplete = true }) {
     const host = hostRef.current;
     if (!host) return undefined;
 
-    const hero = host.closest(".hero");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let renderer;
     let scene;
@@ -52,11 +51,8 @@ export default function ParticlePortrait({ introComplete = true }) {
     };
 
     const updateScrollProgress = () => {
-      if (!hero) return;
-      const rect = hero.getBoundingClientRect();
-      const scrollDistance = Math.max(1, rect.height - window.innerHeight);
-      const documentTop = rect.top + window.scrollY;
-      const scrollProgress = clamp((window.scrollY - documentTop) / scrollDistance);
+      const scrollDistance = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const scrollProgress = clamp(window.scrollY / scrollDistance);
       targetProgress = introCompleteRef.current ? scrollProgress : 1;
       host.dataset.scrollProgress = targetProgress.toFixed(3);
     };
@@ -100,10 +96,12 @@ export default function ParticlePortrait({ introComplete = true }) {
       toneMapped: false
     });
     const ambientCount = window.innerWidth < 650 ? 420 : 760;
+    const ambientViewHeight = 2 * Math.tan(THREE.MathUtils.degToRad(37) / 2) * camera.position.z;
+    const ambientViewWidth = ambientViewHeight * width / height;
     const ambientPositions = new Float32Array(ambientCount * 3);
     for (let i = 0; i < ambientCount; i += 1) {
-      ambientPositions[i * 3] = (seededRandom(i + 1) - 0.5) * 9;
-      ambientPositions[i * 3 + 1] = (seededRandom(i + 2) - 0.5) * 7;
+      ambientPositions[i * 3] = (seededRandom(i + 1) - 0.5) * ambientViewWidth * 1.7;
+      ambientPositions[i * 3 + 1] = (seededRandom(i + 2) - 0.5) * ambientViewHeight * 1.7;
       ambientPositions[i * 3 + 2] = -1 - seededRandom(i + 3) * 3;
     }
     const ambientGeometry = new THREE.BufferGeometry();
@@ -112,7 +110,7 @@ export default function ParticlePortrait({ introComplete = true }) {
     scene.add(ambientStars);
 
     const image = new Image();
-    image.src = "/portrait.jpg";
+    image.src = "/portfolio-image.png";
     image.onload = () => {
       if (disposed) return;
 
@@ -121,9 +119,9 @@ export default function ParticlePortrait({ introComplete = true }) {
         const context = crop.getContext("2d", { willReadFrequently: true });
         if (!context) throw new Error("The browser could not create a 2D canvas context.");
 
-        const cropX = Math.round(image.naturalWidth * 0.05);
+        const cropX = 0;
         const cropY = 0;
-        const cropW = Math.round(image.naturalWidth * 0.9);
+        const cropW = image.naturalWidth;
         const cropH = image.naturalHeight;
         const sampleW = window.innerWidth < 650 ? 210 : 300;
         const sampleH = Math.round(sampleW * (cropH / cropW));
@@ -143,16 +141,12 @@ export default function ParticlePortrait({ introComplete = true }) {
             const green = pixels[pixelIndex + 1];
             const blue = pixels[pixelIndex + 2];
             const alpha = pixels[pixelIndex + 3];
-            const brightness = (red + green + blue) / 3;
-            const spread = Math.max(red, green, blue) - Math.min(red, green, blue);
-
-            // Remove only the white studio backdrop; retain all darker facial, hair, and shirt pixels.
-            if ((brightness > 246 && spread < 12) || (brightness < 18 && spread < 14)) continue;
+            // The supplied portrait is a transparent PNG, so alpha alone defines the silhouette.
             if (alpha < 30) continue;
 
             const seed = x * 0.7 + y * 1.3;
             originalPositions.push(
-              (x / (sampleW - 1) - 0.5) * sceneWidth,
+              (x / (sampleW - 1) - 0.5) * sceneWidth + (window.innerWidth < 650 ? 0 : 3.0),
               (0.5 - y / (sampleH - 1)) * sceneHeight,
               (seededRandom(seed) - 0.5) * 0.06
             );
@@ -170,7 +164,7 @@ export default function ParticlePortrait({ introComplete = true }) {
         count = originalPositions.length / 3;
         if (!count) throw new Error("The portrait did not contain any sampleable pixels.");
 
-        const viewportAspect = Math.max(1, window.innerWidth / Math.max(1, window.innerHeight));
+        const viewportAspect = Math.max(0.45, window.innerWidth / Math.max(1, window.innerHeight));
         const visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(37) / 2) * camera.position.z;
         const visibleWidth = visibleHeight * viewportAspect;
         const scatterWidth = Math.max(sceneWidth * 1.15, visibleWidth * 0.96);
@@ -338,8 +332,8 @@ export default function ParticlePortrait({ introComplete = true }) {
     };
 
     const resize = () => {
-      const nextWidth = Math.max(1, host.clientWidth);
-      const nextHeight = Math.max(1, host.clientHeight);
+      const nextWidth = Math.max(1, window.innerWidth);
+      const nextHeight = Math.max(1, window.innerHeight);
       renderer.setSize(nextWidth, nextHeight);
       camera.aspect = nextWidth / nextHeight;
       camera.position.z = nextWidth < 520 ? 9.4 : 8.3;
@@ -357,7 +351,7 @@ export default function ParticlePortrait({ introComplete = true }) {
     const onPointerLeave = () => pointerTarget.set(10, 10);
 
     resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(host);
+    resizeObserver.observe(document.documentElement);
     window.addEventListener("resize", resize);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -394,8 +388,9 @@ export default function ParticlePortrait({ introComplete = true }) {
   }, [introComplete]);
 
   return (
-    <div className="particle-portrait" ref={hostRef}>
-      <img className="portrait-fallback-image" src="/portrait.jpg" alt="Portrait of Harshit Jain" />
+    <div className="particle-portrait" ref={hostRef} aria-hidden="true">
+      <img className="portrait-source-image" src="/portfolio-image.png" alt="" />
+      <img className="portrait-fallback-image" src="/portfolio-image.png" alt="Portrait of Harshit Jain" />
       <div className="portrait-halo" aria-hidden="true" />
     </div>
   );
