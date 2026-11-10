@@ -116,13 +116,14 @@ export default function IntroSequence({ onComplete }) {
     render();
 
     const q = (selector) => root.querySelector(selector);
+    const qa = (selector) => [...root.querySelectorAll(selector)];
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     timeline = gsap.timeline({
       defaults: { ease: "power3.inOut" },
       onComplete: () => onCompleteRef.current?.(),
     });
     if (reduced) {
-      timeline.set([q(".intro-topline"), q(".intro-kicker"), q(".intro-name"), q(".intro-tagline"), q(".intro-bottomline")], { autoAlpha: 1 })
+      timeline.set([q(".intro-topline"), q(".intro-kicker"), ...qa(".intro-letter"), q(".intro-tagline"), q(".intro-title-index"), q(".intro-bottomline")], { autoAlpha: 1 })
         .to(root, { autoAlpha: 0, duration: .2, delay: .25 });
     } else {
       timeline.set(orb.scale, { x: .001, y: .001, z: .001 })
@@ -133,8 +134,9 @@ export default function IntroSequence({ onComplete }) {
         .to(orb.position, { y: .72, duration: .9, ease: "power2.inOut" }, .42)
         .to(q(".intro-light-streak"), { scaleX: 1, duration: .72, ease: "expo.out" }, .8)
         .fromTo(q(".intro-kicker"), { autoAlpha: 0, y: 13, letterSpacing: ".38em" }, { autoAlpha: 1, y: 0, letterSpacing: ".22em", duration: .48, ease: "power3.out" }, 1.22)
-        .fromTo(q(".intro-name"), { autoAlpha: 0, y: 45, scale: .96, filter: "blur(12px)" }, { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: .82, ease: "power4.out" }, 1.34)
-        .fromTo(q(".intro-tagline"), { autoAlpha: 0, y: 14, filter: "blur(4px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: .5, ease: "power3.out" }, 1.83)
+        .fromTo(qa(".intro-letter"), { autoAlpha: 0, yPercent: 135, z: -380, rotateX: -92, rotateY: 28, scale: .72, filter: "blur(13px)" }, { autoAlpha: 1, yPercent: 0, z: 0, rotateX: 0, rotateY: 0, scale: 1, filter: "blur(0px)", duration: .92, stagger: .045, ease: "back.out(1.35)" }, 1.34)
+        .fromTo(q(".intro-title-index"), { autoAlpha: 0, y: 10, letterSpacing: ".36em" }, { autoAlpha: 1, y: 0, letterSpacing: ".18em", duration: .52, ease: "power3.out" }, 2.48)
+        .fromTo(q(".intro-tagline"), { autoAlpha: 0, y: 14, filter: "blur(4px)" }, { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: .5, ease: "power3.out" }, 2.64)
         .fromTo(q(".intro-bottomline"), { autoAlpha: 0, y: 15 }, { autoAlpha: 1, y: 0, duration: .5 }, 1.75)
         .to(q(".intro-progress-fill"), { scaleX: 1, duration: 1.55, ease: "none" }, 2.1)
         .to(q(".intro-flash"), { autoAlpha: .9, duration: .08 }, 3.72)
@@ -163,7 +165,7 @@ export default function IntroSequence({ onComplete }) {
     <div className="intro-light-streak" aria-hidden="true"/>
     <div className="intro-vignette" aria-hidden="true"/>
     <header className="intro-topline"><span className="intro-mark">HJ<span>.</span></span><span className="intro-edition">DIGITAL PORTFOLIO <i/> 2026</span></header>
-    <div className="intro-copy-block"><p className="intro-kicker"><i/> ENGINEER / AI + MOTION <i/></p><h1 className="intro-name">HARSHIT <span>JAIN</span></h1><p className="intro-tagline">Building <em>intelligence</em> into useful things.</p></div>
+    <div className="intro-copy-block"><p className="intro-kicker"><i/> ENGINEER / AI + MOTION <i/></p><h1 className="intro-name" aria-label="Harshit Jain"><span className="intro-word">{"HARSHIT".split("").map((letter, index) => <span className="intro-letter" aria-hidden="true" key={`h-${index}`}>{letter}</span>)}</span><span className="intro-word intro-word-accent">{"JAIN".split("").map((letter, index) => <span className="intro-letter" aria-hidden="true" key={`j-${index}`}>{letter}</span>)}</span></h1><p className="intro-title-index">PORTFOLIO <i/> 2026</p><p className="intro-tagline">Building <em>intelligence</em> into useful things.</p></div>
     <footer className="intro-bottomline"><span>SOFTWARE <i/> INTELLIGENCE <i/> DESIGN</span><div className="intro-progress"><i className="intro-progress-fill"/></div><span>01 <b>/</b> 03</span></footer>
     <div className="intro-flash" aria-hidden="true"/>
     <button className="cinematic-skip" type="button" onClick={onComplete}>SKIP <span>↗</span></button>
