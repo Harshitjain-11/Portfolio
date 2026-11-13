@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ArrowUpRight, Github } from "lucide-react";
 
 const coordinates = [
@@ -25,7 +25,16 @@ function Architecture({ project }) {
 
 export default function ProjectConstellation({ projects }) {
   const [selected, setSelected] = useState(0);
+  const detailRef = useRef(null);
   const project = projects[selected];
+  const trackSpotlight = (event) => {
+    if (event.pointerType !== "mouse" || !detailRef.current) return;
+    const bounds = detailRef.current.getBoundingClientRect();
+    detailRef.current.style.setProperty("--spotlight-x", `${event.clientX - bounds.left}px`);
+    detailRef.current.style.setProperty("--spotlight-y", `${event.clientY - bounds.top}px`);
+    detailRef.current.classList.add("has-pointer-spotlight");
+  };
+  const clearSpotlight = () => detailRef.current?.classList.remove("has-pointer-spotlight");
   return <div className="project-constellation">
     <div className="constellation-map" aria-label="Three connected project nodes">
       <svg className="constellation-path" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
@@ -39,7 +48,7 @@ export default function ProjectConstellation({ projects }) {
       <div className="constellation-coordinate coordinate-a">FIELD / 01</div><div className="constellation-coordinate coordinate-b">SYSTEMS IN MOTION</div>
     </div>
 
-    <article className="constellation-detail" key={project.name}>
+    <article ref={detailRef} className="constellation-detail" key={project.name} onPointerMove={trackSpotlight} onPointerLeave={clearSpotlight}>
       <div className="project-detail-visual">
         {project.preview ? <img src={project.preview} alt={`${project.name} project screenshot from its GitHub README`} loading="lazy" /> : <div className="project-detail-placeholder"><span>IMPLEMENTATION MAP</span><b>{project.name}</b><i>{project.architecture.map((node) => node.name).join("  →  ")}</i></div>}
         <span className="preview-source">{project.preview ? "REPOSITORY SCREENSHOT" : "REPOSITORY ARCHITECTURE"}</span>

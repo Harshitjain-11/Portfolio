@@ -46,7 +46,7 @@ export default function TechConstellation({ projects }) {
       {techs.map((name, index) => {
         const [x, y] = positions[index % positions.length];
         const connected = !activeTech || name === activeTech || related.some((project) => project.stack.includes(name));
-        return <button key={name} className={`tech-node ${activeTech === name ? "is-active" : ""} ${connected ? "is-connected" : "is-dimmed"}`} style={{ left: `${x}%`, top: `${y}%` }} type="button" onMouseEnter={() => setActiveTech(name)} onFocus={() => setActiveTech(name)} onClick={() => setActiveTech(activeTech === name ? null : name)} aria-pressed={activeTech === name}>
+        return <button key={name} className={`tech-node ${activeTech === name ? "is-active" : ""} ${connected ? "is-connected" : "is-dimmed"}`} style={{ left: `${x}%`, top: `${y}%`, "--float-delay": `${index * -0.32}s` }} type="button" onMouseEnter={() => setActiveTech(name)} onFocus={() => setActiveTech(name)} onClick={() => setActiveTech(activeTech === name ? null : name)} aria-pressed={activeTech === name}>
           <span className="tech-logo"><BrandIcon source={iconByName[name]} label={name} color={iconColor[name]}/></span><span className="tech-label">{name}</span>
         </button>;
       })}

@@ -299,3 +299,13 @@ h1,h2,h3,.wordmark,.project-node-label strong,.tech-constellation-readout>strong
 @keyframes signalPulse{50%{opacity:.4;box-shadow:0 0 3px rgba(199,250,98,.4)}}
 @media(max-width:650px){.cinematic-intro:before{background-size:48px 48px;opacity:.28}.intro-topline{top:20px;left:20px;right:20px}.intro-mark{font-size:19px}.intro-edition{font-size:6px;letter-spacing:.1em}.intro-signal{display:none}.cinematic-intro .cinematic-skip{top:17px;right:20px;padding:9px 11px}.intro-core-glow{top:35%;width:90vw}.intro-light-streak{top:35%}.intro-copy-block{top:59%;left:10px;right:10px}.intro-kicker{font-size:7px;letter-spacing:.13em;margin-bottom:15px}.intro-name{gap:.12em;font-size:clamp(42px,12vw,76px);letter-spacing:-.1em}.intro-title-index{margin-top:14px;font-size:7px}.intro-tagline{margin-top:9px;font-size:13px}.intro-bottomline{left:20px;right:20px;bottom:24px;grid-template-columns:1fr auto;gap:12px}.intro-bottomline>span:first-child{gap:6px;font-size:6px;letter-spacing:.08em}.intro-progress{grid-row:2;grid-column:1/-1}.intro-bottomline>span:last-child{grid-column:2;grid-row:1}}
 @media(prefers-reduced-motion:reduce){.cinematic-intro{display:none}.cinematic-intro:before,.intro-core-glow:before,.intro-core-glow:after,.intro-name span,.intro-signal i{animation:none}.intro-flash{display:none}}
+
+/* Cursor-reactive light and softly floating technology nodes add motion to exploration. */
+.constellation-detail{position:relative;isolation:isolate;overflow:hidden}
+.constellation-detail:before{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;opacity:0;background:radial-gradient(460px circle at var(--spotlight-x,50%) var(--spotlight-y,50%),rgba(129,157,255,.12),rgba(199,250,98,.035) 38%,transparent 74%);transition:opacity .3s ease}
+.constellation-detail.has-pointer-spotlight:before{opacity:1}
+.constellation-detail>*{position:relative;z-index:1}
+.tech-node:not(.is-active):not(:hover) .tech-logo{animation:techNodeFloat 5.2s ease-in-out infinite;animation-delay:var(--float-delay,0s);will-change:transform}
+@keyframes techNodeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media(max-width:650px){.tech-node:not(.is-active):not(:hover) .tech-logo{animation-duration:6.5s}}
+@media(prefers-reduced-motion:reduce){.tech-node .tech-logo{animation:none!important;will-change:auto}.constellation-detail:before{transition:none}}
